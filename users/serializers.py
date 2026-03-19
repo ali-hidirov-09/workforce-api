@@ -18,10 +18,19 @@ class WorkerCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Worker
         fields = [
-            'username', 'password', 'first_name', 'last_name',
+            'id', 'username', 'password', 'first_name', 'last_name',
             'number', 'living_address', 'work_type',
             'percentage_work', 'work_day', 'rest_day', 'role'
         ]
+
+    def validate_username(self, value):
+        # Edit qilayotganda o'zining username ini tekshirmasin
+        instance = self.instance
+        if Worker.objects.filter(username=value).exclude(
+            pk=instance.pk if instance else None
+        ).exists():
+            raise serializers.ValidationError("Bu username allaqachon mavjud.")
+        return value
 
     def create(self, validated_data):
         password = validated_data.pop('password', 'changeme123')
@@ -41,7 +50,6 @@ class WorkerCreateSerializer(serializers.ModelSerializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
-    """Login bo'lgan userning o'z profilini ko'rish/tahrirlash uchun"""
     class Meta:
         model = Worker
         fields = [
